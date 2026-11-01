@@ -58,7 +58,7 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <body>
 <div class="wrap">
 <nav aria-label="Sumário"><b>Sumário</b>
-<a href="#visao">1. Visão geral</a><a href="#funciona">2. Como funciona</a><a href="#p1">3. Fork no GitHub</a><a href="#p2">4. Publicar na Vercel</a><a href="#p3">5. Google Cloud</a><a href="#p4">6. Variáveis e redeploy</a><a href="#p5">7. Configurar o Kodi</a><a href="#p6">8. Autenticar</a><a href="#problemas">9. Problemas</a><a href="#checklist">10. Checklist</a><a href="#manutencao">11. Manutenção</a><a href="#refs">12. Referências</a>
+<a href="#visao">Visão geral</a><a href="#funciona">Como funciona</a><a href="#p1">Passo 1 · Fork no GitHub</a><a href="#p2">Passo 2 · Vercel</a><a href="#p3">Passo 3 · Google Cloud</a><a href="#p4">Passo 4 · Variáveis e redeploy</a><a href="#p5">Passo 5 · Admin Console</a><a href="#p6">Passo 6 · Configurar o Kodi</a><a href="#p7">Passo 7 · Autenticar</a><a href="#problemas">Solução de problemas</a><a href="#checklist">Checklist</a><a href="#manutencao">Manutenção</a><a href="#refs">Referências</a>
 </nav>
 <main>
 <header>
@@ -71,14 +71,16 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 
 <div class="box info"><b class="t">Como usar os valores deste guia</b><p>Os nomes em MAIÚSCULAS, como <code>SEU-USUARIO</code> e <code>SEU-PROJETO</code>, são marcadores: substitua pelos seus dados. O endereço do seu servidor será sempre <code>https://SEU-PROJETO.vercel.app</code>.</p></div>
 
-<section id="visao"><h2>1. Visão geral</h2>
+<section id="visao"><h2>Visão geral</h2>
 <p>Este tutorial mostra como configurar o complemento <b>Google Drive</b> do Kodi usando um <b>servidor de autenticação OAuth 2.0 próprio</b>, hospedado gratuitamente na Vercel. É útil quando o servidor público do complemento é barrado pelo Google, exibindo o erro:</p>
 <div class="box danger"><b class="t">Erro que motivou este guia</b><p><b>Este aplicativo foi bloqueado pelo Google.</b></p></div>
 <p>Em vez de depender do servidor público, você hospeda a sua aplicação, cria credenciais OAuth no Google Cloud e conecta tudo ao Kodi.</p>
 <h3>O que você vai precisar</h3>
-<ul><li>Contas no <b>GitHub</b>, na <b>Vercel</b> (pode entrar com o GitHub) e no <b>Google Cloud</b>.</li><li><b>Kodi</b> com o complemento <b>Google Drive</b> instalado (testado na versão 1.6.8, de Carlos Guzman, pelo repositório oficial do Kodi).</li><li>Um celular ou computador para digitar o PIN de autenticação.</li></ul></section>
+<ul><li>Contas no <b>GitHub</b>, na <b>Vercel</b> (pode entrar com o GitHub) e no <b>Google Cloud</b>.</li><li><b>Kodi</b> com o complemento <b>Google Drive</b> instalado (testado na versão 1.6.8, de Carlos Guzman, pelo repositório oficial do Kodi).</li><li>Conta <b>Google Workspace</b> com acesso de <b>administrador</b> ao Admin Console.</li><li>Um celular ou computador para digitar o PIN de autenticação.</li></ul>
+<h3>Roteiro</h3>
+<ol><li><a href="#p1">Fork no GitHub</a></li><li><a href="#p2">Publicar na Vercel</a></li><li><a href="#p3">Configurar o Google Cloud</a></li><li><a href="#p4">Variáveis de ambiente e redeploy</a></li><li><a href="#p5">Liberar o app no Admin Console do Google Workspace</a></li><li><a href="#p6">Configurar o complemento no Kodi</a></li><li><a href="#p7">Autenticar a conta</a></li></ol></section>
 
-<section id="funciona"><h2>2. Como a solução funciona</h2>
+<section id="funciona"><h2>Como a solução funciona</h2>
 <p>O Kodi delega o login ao servidor configurado no complemento (campo “Sign-in Server”). Ao trocar o servidor público pelo seu, o login passa a usar as <b>suas</b> credenciais OAuth.</p>
 <figure><img src="assets/arquitetura.png" alt="Kodi se comunica com o servidor OAuth na Vercel, que se comunica com o Google Cloud"><figcaption>Figura 1 — Arquitetura da solução</figcaption></figure>
 <h3>Serviços utilizados</h3>
@@ -86,22 +88,22 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <p>Repositório utilizado: <a href="https://github.com/aldacco/drive-login">github.com/aldacco/drive-login</a>. É a versão atualizada do projeto: <b>dispensa Redis</b> e guarda as credenciais do Google em <b>variáveis de ambiente privadas</b>.</p>
 <div class="box danger"><b class="t">Por que não usar a versão anterior</b><p>Uma versão mais antiga (<code>Sakuragi90/kodi-gdrive</code>) usava a variável <code>NEXT_PUBLIC_CLIENT_SECRET</code>. Variáveis com prefixo <code>NEXT_PUBLIC_</code> vão para o navegador, o que <b>pode expor o segredo OAuth</b>. Por isso adotamos o <code>aldacco/drive-login</code>.</p><p>Como esse código manipula o seu Client Secret, vale <b>ler o repositório</b> antes de publicá-lo.</p></div></section>
 
-<section id="p1"><h2><span class="n">1</span>Fork no GitHub</h2>
+<section id="p1"><h2><span class="n">Passo 1</span>Fork no GitHub</h2>
 <p>O fork cria uma cópia do projeto na sua conta, que será publicada na Vercel.</p>
 <ol><li>Acesse <code>aldacco/drive-login</code> e faça login no GitHub.</li><li>Clique em <b>Fork</b>, no canto superior direito.</li><li>Mantenha as opções padrão.</li><li>Clique em <b>Create fork</b>.</li></ol>
 <div class="box ok2"><b class="t">Resultado esperado</b><p>Um repositório <code>SEU-USUARIO/drive-login</code> na sua conta do GitHub.</p></div></section>
 
-<section id="p2"><h2><span class="n">2</span>Publicar na Vercel</h2>
-<h3>Importar o repositório</h3>
+<section id="p2"><h2><span class="n">Passo 2</span>Publicar na Vercel</h2>
+<h3>2.1 Importar o repositório</h3>
 <ol><li>Acesse a Vercel e entre com a sua conta GitHub.</li><li>Clique em <b>Add New → Project</b>.</li><li>Localize <code>SEU-USUARIO/drive-login</code>.</li><li>Clique em <b>Import</b>.</li></ol>
-<h3>Configurações do projeto</h3>
+<h3>2.2 Configurações do projeto</h3>
 <div class="tw"><table><tr><th>Campo</th><th>Configuração</th></tr><tr><td>Project Name</td><td><code>drive-login</code> (ou outro nome)</td></tr><tr><td>Root Directory</td><td><code>./</code></td></tr><tr><td>Application Preset</td><td>Next.js</td></tr><tr><td>Build / Output / Install Command</td><td>Padrão</td></tr></table></div>
 <p>Na primeira publicação, <b>remova</b> a variável de exemplo <code>EXAMPLE_NAME</code> e deixe as variáveis vazias (serão preenchidas no passo 4). Clique em <b>Deploy</b>.</p>
-<h3>Anote o endereço definitivo</h3>
+<h3>2.3 Anote o endereço definitivo</h3>
 <p>A primeira implantação gera um endereço temporário com sufixo aleatório. Use o <b>endereço definitivo</b> (em “Domains”, nas configurações) e anote-o: <code>https://SEU-PROJETO.vercel.app</code>.</p>
 <div class="box warn"><b class="t">Atenção</b><p>O mesmo endereço precisa ser usado no <b>Google Cloud</b>, na <b>Vercel</b> e no <b>Kodi</b>. Qualquer diferença (inclusive uma barra no final) causa erro.</p></div></section>
 
-<section id="p3"><h2><span class="n">3</span>Configurar o Google Cloud</h2>
+<section id="p3"><h2><span class="n">Passo 3</span>Configurar o Google Cloud</h2>
 <p>Acesse o <a href="https://console.cloud.google.com/">Google Cloud Console</a> e escolha um projeto existente ou crie um novo (aqui, <code>SEU-PROJETO-GOOGLE</code>).</p>
 <h3>3.1 Ativar a Google Drive API</h3>
 <ol><li>Acesse <b>APIs e serviços → Biblioteca</b>.</li><li>Pesquise <b>Google Drive API</b> e abra-a.</li><li>Clique em <b>Ativar</b>, se ainda não estiver ativa.</li></ol>
@@ -120,27 +122,33 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <div class="box danger"><b class="t">Segurança</b><p>Nunca compartilhe o Client Secret em mensagens, capturas de tela, tutoriais ou repositórios públicos.</p></div>
 <div class="box tip"><b class="t">Tela de consentimento e usuários de teste</b><p>Se o app OAuth estiver em modo de <b>teste</b>, adicione sua conta Google como <b>usuário de teste</b>. Nesse modo, o Google pode expirar a autorização após alguns dias (cerca de 7), exigindo novo login no Kodi. Publicar o app em produção evita isso; confira as regras vigentes na documentação do Google.</p></div></section>
 
-<section id="p4"><h2><span class="n">4</span>Variáveis de ambiente e redeploy</h2>
+<section id="p4"><h2><span class="n">Passo 4</span>Variáveis de ambiente e redeploy</h2>
 <ol><li>No painel da Vercel, abra o projeto <code>drive-login</code>.</li><li>Entre em <b>Settings → Environment Variables</b>.</li><li>Cadastre as duas variáveis abaixo.</li></ol>
 <div class="tw"><table><tr><th>Key</th><th>Value</th></tr><tr><td><code>GOOGLE_CLIENT_ID</code></td><td>O Client ID do Google Cloud</td></tr><tr><td><code>GOOGLE_CLIENT_SECRET</code></td><td>O Client Secret do Google Cloud</td></tr></table></div>
 <p>Para ambas, selecione <b>Production</b>, <b>Preview</b> e <b>Development</b> e salve.</p>
-<h3>Fazer o redeploy</h3>
+<h3>4.1 Fazer o redeploy</h3>
 <p>As variáveis foram criadas depois da primeira publicação, então é preciso gerar uma nova implantação.</p>
 <ol><li>Abra a aba <b>Deployments</b>.</li><li>Na implantação mais recente, clique nos três pontinhos (<b>…</b>).</li><li>Selecione <b>Redeploy</b> e confirme.</li><li>Aguarde o status <b>Ready</b>.</li></ol></section>
 
-<section id="p5"><h2><span class="n">5</span>Configurar o complemento no Kodi</h2>
-<h3>Abrir as configurações</h3>
+<section id="p5"><h2><span class="n">Passo 5</span>Liberar o app no Admin Console do Google Workspace</h2>
+<div class="box warn"><b class="t">Requisito</b><p>Você precisa ser <b>administrador do Google Workspace</b> para executar este passo.</p></div>
+<p>Antes de configurar o Kodi, libere o acesso do app à sua conta no Admin Console:</p>
+<ol><li>Acesse o <a href="https://admin.google.com/">Admin Console</a> com uma conta de administrador.</li><li>Vá em <b>Segurança → Controle de acesso e dados → Controles de API</b>.</li><li>Clique em <b>Gerenciar acesso dos apps</b>.</li><li>Role até <b>Aplicativos acessados</b> e clique em <b>Visualizar lista</b>.</li><li>Localize e selecione o app <b>Kodi Google Drive</b> (o nome do cliente OAuth criado no Passo 3).</li><li>Clique em <b>Alterar acesso</b>.</li><li>Marque o acesso para a sua conta e confirme.</li></ol>
+<div class="box ok2"><b class="t">Resultado esperado</b><p>O app <b>Kodi Google Drive</b> com acesso liberado para a sua conta. Agora você pode configurar o Kodi no próximo passo.</p></div></section>
+
+<section id="p6"><h2><span class="n">Passo 6</span>Configurar o complemento no Kodi</h2>
+<h3>6.1 Abrir as configurações</h3>
 <ol><li>Entre em <b>Add-ons → Meus add-ons → Complementos de vídeo</b>.</li><li>Selecione <b>Google Drive</b> e abra <b>Configurar</b>.</li><li>Entre na aba <b>Advanced (Avançado)</b>.</li></ol>
-<h3>Alterar o servidor de autenticação</h3>
+<h3>6.2 Alterar o servidor de autenticação</h3>
 <p>No campo <b>Sign-in Server</b> (que vem com <code>https://drive.signinserver.com</code>), informe:</p>
 <div class="codeblock"><span>https://SEU-PROJETO.vercel.app</span><button>Copiar</button></div>
 <div class="box warn"><b class="t">Atenção</b><p><b>Não</b> coloque barra (<code>/</code>) no final. Salve as configurações.</p></div></section>
 
-<section id="p6"><h2><span class="n">6</span>Autenticar a conta</h2>
+<section id="p7"><h2><span class="n">Passo 7</span>Autenticar a conta</h2>
 <ol><li>Abra novamente o complemento <b>Google Drive</b> no Kodi.</li><li>Escolha a opção para <b>adicionar uma conta</b>.</li><li>O Kodi exibirá um <b>QR Code</b> e um <b>PIN temporário</b>.</li><li>No celular ou computador, abra o endereço indicado.</li><li>Informe o PIN.</li><li>Faça login na conta Google desejada.</li><li>Autorize o acesso solicitado.</li></ol>
 <div class="box ok2"><b class="t">Login realizado com sucesso!</b><p>A autenticação foi concluída usando o servidor próprio hospedado na Vercel.</p></div></section>
 
-<section id="problemas"><h2>9. Solução de problemas</h2>
+<section id="problemas"><h2>Solução de problemas</h2>
 <h3>Problema 1 — Aplicativo bloqueado pelo Google</h3>
 <div class="tw"><table><tr><th>Item</th><th>Detalhe</th></tr><tr><td><b>Sintoma</b></td><td>“Este aplicativo foi bloqueado pelo Google.”</td></tr><tr><td><b>Causa</b></td><td>O servidor público de autenticação do complemento não permite concluir o login.</td></tr><tr><td><b>Solução</b></td><td>Hospedar instância própria (<code>aldacco/drive-login</code> + Vercel) com credenciais OAuth próprias, como neste tutorial.</td></tr></table></div>
 <h3>Problema 2 — Erro 400: redirect_uri_mismatch</h3>
@@ -148,8 +156,8 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <p><b>Solução:</b></p>
 <ol><li>Abra <b>Google Cloud → Google Auth Platform → Clientes</b>.</li><li>Edite o cliente <b>Kodi Google Drive</b>.</li><li>Adicione o endereço completo em <b>URIs de redirecionamento autorizados</b>.</li><li>Salve e repita a autenticação.</li></ol></section>
 
-<section id="checklist"><h2>10. Checklist de implantação</h2>
-<p class="prog" id="prog">0 de 11 concluídos</p>
+<section id="checklist"><h2>Checklist de implantação</h2>
+<p class="prog" id="prog">0 de 12 concluídos</p>
 <ul class="check" id="ck">
 <li><label><input type="checkbox"> Criar fork de <code>aldacco/drive-login</code> no GitHub</label></li>
 <li><label><input type="checkbox"> Importar o fork na Vercel e publicar a aplicação Next.js</label></li>
@@ -160,15 +168,16 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <li><label><input type="checkbox"> Guardar Client ID e Client Secret em local seguro</label></li>
 <li><label><input type="checkbox"> Cadastrar <code>GOOGLE_CLIENT_ID</code> e <code>GOOGLE_CLIENT_SECRET</code> na Vercel</label></li>
 <li><label><input type="checkbox"> Fazer o redeploy da aplicação</label></li>
+<li><label><input type="checkbox"> Liberar o app <b>Kodi Google Drive</b> no Admin Console do Google Workspace</label></li>
 <li><label><input type="checkbox"> Alterar o <b>Sign-in Server</b> no Kodi</label></li>
 <li><label><input type="checkbox"> Gerar o PIN, autorizar a conta Google e confirmar o login</label></li></ul></section>
 
-<section id="manutencao"><h2>11. Manutenção e boas práticas</h2>
+<section id="manutencao"><h2>Manutenção e boas práticas</h2>
 <div class="tw"><table><tr><th>Item</th><th>Valor</th></tr><tr><td>GitHub</td><td><code>SEU-USUARIO/drive-login</code></td></tr><tr><td>Repositório original</td><td><code>aldacco/drive-login</code></td></tr><tr><td>Projeto Vercel</td><td><code>drive-login</code></td></tr><tr><td>Projeto Google Cloud</td><td><code>SEU-PROJETO-GOOGLE</code></td></tr><tr><td>Cliente OAuth</td><td><code>Kodi Google Drive</code></td></tr><tr><td>Complemento Kodi</td><td>Google Drive 1.6.8</td></tr><tr><td>Servidor de autenticação</td><td><code>https://SEU-PROJETO.vercel.app</code></td></tr><tr><td>Callback OAuth</td><td><code>https://SEU-PROJETO.vercel.app/callback</code></td></tr></table></div>
 <h3>Cuidados para o futuro</h3>
-<ul><li>Não exclua o projeto da Vercel nem o cliente OAuth do Google Cloud.</li><li>Não altere o domínio da Vercel sem atualizar os endereços autorizados no Google Cloud e no Kodi.</li><li>Nunca exponha o Client Secret em variáveis <code>NEXT_PUBLIC_</code>.</li><li>Se alterar as variáveis de ambiente, faça um novo redeploy.</li><li>Se o Google exigir validação adicional, confira a tela de consentimento OAuth, incluindo usuários de teste e escopos.</li></ul></section>
+<ul><li>Não exclua o projeto da Vercel nem o cliente OAuth do Google Cloud.</li><li>Não altere o domínio da Vercel sem atualizar os endereços autorizados no Google Cloud e no Kodi.</li><li>Nunca exponha o Client Secret em variáveis <code>NEXT_PUBLIC_</code>.</li><li>Se alterar as variáveis de ambiente, faça um novo redeploy.</li><li>Não remova o acesso concedido ao app no Admin Console do Google Workspace.</li><li>Se o Google exigir validação adicional, confira a tela de consentimento OAuth, incluindo usuários de teste e escopos.</li></ul></section>
 
-<section id="refs"><h2>12. Referências e conclusão</h2>
+<section id="refs"><h2>Referências e conclusão</h2>
 <ul><li><a href="https://github.com/aldacco/drive-login">GitHub — aldacco/drive-login</a></li><li><a href="https://vercel.com/docs">Documentação da Vercel</a></li><li><a href="https://console.cloud.google.com/">Google Cloud Console</a></li><li><a href="https://developers.google.com/identity/protocols/oauth2/web-server">Google — OAuth 2.0 para aplicações web</a></li><li><a href="https://kodi.tv/">Site oficial do Kodi</a></li></ul>
 <h3>Conclusão</h3>
 <p>A solução foi implementada e validada: o Kodi autenticou a conta Google usando uma aplicação própria, hospedada na Vercel, com credenciais OAuth criadas no Google Cloud.</p>
@@ -180,11 +189,11 @@ document.querySelectorAll('.codeblock button').forEach(function(b){b.addEventLis
  var t=b.parentNode.querySelector('span').textContent;
  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copiado!'},function(){var r=document.createRange();r.selectNodeContents(b.parentNode.querySelector('span'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selecionado'});
  setTimeout(function(){b.textContent='Copiar'},1800)})});
-var KEY='kodi-ck',boxes=[].slice.call(document.querySelectorAll('#ck input')),pr=document.getElementById('prog');
+var KEY='kodi-ck2',boxes=[].slice.call(document.querySelectorAll('#ck input')),pr=document.getElementById('prog');
 function upd(){pr.textContent=boxes.filter(function(x){return x.checked}).length+' de '+boxes.length+' concluídos'}
 try{var sv=JSON.parse(localStorage.getItem(KEY)||'[]');boxes.forEach(function(x,i){x.checked=!!sv[i]})}catch(e){}
 boxes.forEach(function(x){x.addEventListener('change',function(){upd();try{localStorage.setItem(KEY,JSON.stringify(boxes.map(function(y){return y.checked})))}catch(e){}})});upd();
 var links=[].slice.call(document.querySelectorAll('nav a')),secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
-addEventListener('scroll',function(){var y=scrollY+80,c=0;secs.forEach(function(s,i){if(s&&s.offsetTop<=y)c=i});links.forEach(function(a,i){a.classList.toggle('on',i==c)})});
+addEventListener('scroll',function(){var y=scrollY+220,c=0;secs.forEach(function(s,i){if(s&&s.offsetTop<=y)c=i});links.forEach(function(a,i){a.classList.toggle('on',i==c)})});
 </script>
 </body></html>
